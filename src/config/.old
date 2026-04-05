@@ -1,0 +1,35 @@
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const userModel = require('../models/userModel');
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "/api/auth/google/callback",
+    proxy: true
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      const email = profile.emails[0].value;
+      // Check if user exists by email
+      let user = await userModel.findUserByIdentifier(email);
+
+      if (!user) {
+        // If they don't exist, create a new record
+        // Note: password_hash can be null for Google users
+        user = await userModel.createUser(
+          profile.displayName,
+          profile.emails[0].value.split('@')[0], // username fallback
+          email,
+          null, // phone
+          null  // no password for social login
+        );
+      }
+      return done(null, user);
+    } catch (err) {
+      return done(err, null);
+    }
+  }
+));
+
+module.exports = passport;

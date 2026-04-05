@@ -33,12 +33,25 @@ const signup = async (req, res) => {
       maxAge: 3600000 // 1 hour in milliseconds
     });
 
-    res.status(201).json({ message: 'User registered successfully' });
+    res.status(200).json({ message: 'User registered successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Database error during signup' });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const login = async (req, res) => {
   const { identifier, password } = req.body;
@@ -65,7 +78,7 @@ const login = async (req, res) => {
 
     // 4. Send token in an HttpOnly cookie
     res.cookie('token', token, {
-      httpOnly: true, // Prevents XSS attacks (JS cannot read it)
+      httpOnly: true, 
       secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
       sameSite: 'lax', // Protects against CSRF
       maxAge: 3600000 // 1 hour in milliseconds
@@ -86,6 +99,27 @@ const checkAuth = (req, res) => {
 const logout = (req, res) => {
   res.clearCookie('token');
   res.status(200).json({ message: 'Logged out successfully' });
+};
+
+
+const googleCallback = (req, res) => {
+    const user = req.user; // Set by passport
+
+    const token = jwt.sign(
+        { username: user.username, name: user.full_name },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 3600000
+    });
+
+    // Redirect back to your frontend dashboard
+    res.redirect('http://localhost:5173/dashboard');
 };
 
 module.exports = { signup, login, checkAuth, logout };
