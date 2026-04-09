@@ -1,4 +1,3 @@
-
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
@@ -21,18 +20,7 @@ const signup = async (req, res) => {
     await userModel.createUser(full_Name, username, email, phone, passwordHash);
 
 
-   const token = jwt.sign(
-  { username: username, name: full_Name }, 
-  process.env.JWT_SECRET,
-  { expiresIn: '1h' }
-);
-
-    res.cookie('token', token, {
-      httpOnly: true, // Prevents XSS attacks (JS cannot read it)
-      secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
-      sameSite: 'lax', // Protects against CSRF
-      maxAge: 3600000 // 1 hour in milliseconds
-    });
+   
 
     res.status(200).json({ message: 'User registered successfully' });
   } catch (error) {
